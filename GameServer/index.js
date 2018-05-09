@@ -25,6 +25,61 @@ app.get('/room/:roomId', function (req, res) {
     res.status(200).send(room);
 });
 
+app.post('/room/:roomId/players/:userId/score', function (req, res) {
+    const roomId = req.params.roomId;
+
+    let room = db.rooms.find((room) => {
+        return room.name === roomId;
+    });
+
+    if (!roomId || !room) {
+        res.status(500).send('Invalid room');
+
+        return;
+    }
+
+    const userId = req.params.userId;
+    const user = room.getPlayerByName(userId);
+
+    if (!userId || !user) {
+        res.status(500).send('Invalid request');
+
+        return;
+    }
+
+    user.addScore(req.body.score);
+
+    res.status(200).send({});
+});
+
+app.get('/room/:roomId/players/:playerName/draw', function (req, res) {
+    const roomId = req.params.roomId;
+
+    let room = db.rooms.find((room) => {
+        return room.name === roomId;
+    });
+
+    if (!roomId || !room) {
+        res.status(500).send('Invalid room');
+
+        return;
+    }
+
+    const player = room.getPlayerByName(req.params.playerName);
+
+    if (!player) {
+        res.status(500).send('No such player exists');
+
+        return;
+    }
+
+    const score = Math.ceil(Math.random() * 14);
+
+    player.addScore(score);
+
+    res.status(200).send({});
+});
+
 // Add player to room /room/MyGameRoom/players
 app.post('/room/:roomId/players/:playerName', function (req, res) {
     const roomId = req.params.roomId;
@@ -58,33 +113,6 @@ app.post('/room/:roomId/players/:playerName', function (req, res) {
     }
 
     res.status(200).send(room);
-});
-
-app.post('/room/:roomId/players/:userId/score', function (req, res) {
-    const roomId = req.params.roomId;
-
-    let room = db.rooms.find((room) => {
-        return room.name === roomId;
-    });
-
-    if (!roomId || !room) {
-        res.status(500).send('Invalid room');
-
-        return;
-    }
-
-    const userId = req.params.userId;
-    const user = room.getPlayerByName(userId);
-
-    if (!userId || !user) {
-        res.status(500).send('Invalid request');
-
-        return;
-    }
-
-    user.addScore(req.body.score);
-
-    res.status(200).send({});
 });
 
 app.use('/static', express.static(path.join(__dirname, 'public')));
